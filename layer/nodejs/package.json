@@ -1,0 +1,10 @@
+{
+  "name": "serverlessprojects-layer",
+  "version": "1.0.0",
+  "description": "Shared dependencies for serverlessprojects",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3"
+  }
+}
