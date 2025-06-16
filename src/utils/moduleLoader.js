@@ -1,14 +1,16 @@
 /**
- * Module loader for ES modules to load dependencies from Lambda layers
+ * Module loader for external dependencies
  */
-import { loadLayerModule } from './moduleResolver.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
 
-// Pre-load common dependencies
-export const mongoose = loadLayerModule('mongoose');
-export const bcrypt = loadLayerModule('bcryptjs');
-export const jwt = loadLayerModule('jsonwebtoken');
-
-// Export a function to dynamically load other modules
-export const loadModule = (moduleName) => {
-  return loadLayerModule(moduleName);
+export {
+  jwt,
+  bcrypt,
+  mongoose,
+  CognitoIdentityProviderClient,
+  CognitoJwtVerifier
 };

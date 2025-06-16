@@ -5,10 +5,11 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: 'aws',
     runtime: 'nodejs20.x',
+    region: 'us-east-1',
     environment: {
       NODE_ENV: "${opt:stage, 'dev'}",
-      JWT_SECRET: "${env:JWT_SECRET, 'secretKey'}",
-      MONGODB_URI: "${env:MONGODB_URI, 'mongodb://localhost:27017/serverless-api'}"
+      USER_POOL_ID: { Ref: 'UserPool' },
+      USER_POOL_CLIENT_ID: { Ref: 'UserPoolClient' }
     },
     layers: [
       { Ref: 'DependenciesLambdaLayer' }
@@ -19,6 +20,23 @@ const serverlessConfiguration: AWS = {
     tracing: {
       apiGateway: true,
       lambda: true
+    },
+    iam: {
+      role: {
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: [
+              'cognito-idp:AdminInitiateAuth',
+              'cognito-idp:AdminCreateUser',
+              'cognito-idp:AdminSetUserPassword',
+              'cognito-idp:ListUsers',
+              'cognito-idp:AdminGetUser'
+            ],
+            Resource: '*'
+          }
+        ]
+      }
     }
   },
   plugins: ['serverless-offline'],
@@ -52,6 +70,23 @@ const serverlessConfiguration: AWS = {
         ]
       }
     },
+    testCognito: {
+      handler: 'src/functions/auth/test-cognito.handler',
+      events: [
+        {
+          http: {
+            path: '/test-cognito',
+            method: 'get'
+          }
+        }
+      ],
+      package: {
+        patterns: [
+          'src/functions/auth/test-cognito.js',
+          'src/utils/**'
+        ]
+      }
+    },
     loginV1: {
       handler: 'src/functions/auth/login.handler',
       events: [
@@ -67,7 +102,6 @@ const serverlessConfiguration: AWS = {
           'src/functions/auth/**',
           'src/utils/**',
           'src/middleware/**',
-          'src/models/**',
           'src/services/authService.js',
           '!src/functions/hello/**',
           '!src/functions/users/**'
@@ -89,7 +123,6 @@ const serverlessConfiguration: AWS = {
           'src/functions/auth/**',
           'src/utils/**',
           'src/middleware/**',
-          'src/models/**',
           'src/services/authService.js',
           '!src/functions/hello/**',
           '!src/functions/users/**'
@@ -111,8 +144,6 @@ const serverlessConfiguration: AWS = {
           'src/functions/users/getAll.js',
           'src/utils/**',
           'src/middleware/**',
-          'src/models/**',
-          'src/services/userService.js',
           '!src/functions/hello/**',
           '!src/functions/auth/**',
           '!src/functions/users/create.js'
@@ -134,8 +165,6 @@ const serverlessConfiguration: AWS = {
           'src/functions/users/create.js',
           'src/utils/**',
           'src/middleware/**',
-          'src/models/**',
-          'src/services/userService.js',
           '!src/functions/hello/**',
           '!src/functions/auth/**',
           '!src/functions/users/getAll.js'
@@ -156,15 +185,54 @@ const serverlessConfiguration: AWS = {
       httpPort: 3000,
       layersDir: './layer'
     },
-    esbuild: {
-      external: ['bcryptjs', 'jsonwebtoken', 'mongoose'],
-    },
+
     logs: {
       restApi: {
         accessLogging: true,
         executionLogging: true,
         level: 'INFO',
         fullExecutionData: true
+      }
+    }
+  },
+  resources: {
+    Resources: {
+      UserPool: {
+        Type: 'AWS::Cognito::UserPool',
+        Properties: {
+          UserPoolName: '${self:service}-${sls:stage}-user-pool',
+          AutoVerifiedAttributes: ['email'],
+          UsernameAttributes: ['email'],
+          Schema: [
+            {
+              Name: 'email',
+              Required: true,
+              Mutable: true
+            }
+          ],
+          Policies: {
+            PasswordPolicy: {
+              MinimumLength: 8,
+              RequireLowercase: true,
+              RequireNumbers: true,
+              RequireSymbols: false,
+              RequireUppercase: true
+            }
+          }
+        }
+      },
+      UserPoolClient: {
+        Type: 'AWS::Cognito::UserPoolClient',
+        Properties: {
+          ClientName: '${self:service}-${sls:stage}-user-pool-client',
+          UserPoolId: { Ref: 'UserPool' },
+          ExplicitAuthFlows: [
+            'ALLOW_ADMIN_USER_PASSWORD_AUTH',
+            'ALLOW_USER_PASSWORD_AUTH',
+            'ALLOW_REFRESH_TOKEN_AUTH'
+          ],
+          GenerateSecret: false
+        }
       }
     }
   }

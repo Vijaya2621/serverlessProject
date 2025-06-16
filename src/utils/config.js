@@ -1,6 +1,6 @@
-export const JWT_SECRET = process.env.JWT_SECRET || 'secretKey';
-export const JWT_EXPIRY = '1h';
-export const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/serverless-api';
+
+export const USER_POOL_ID = process.env.USER_POOL_ID;
+export const USER_POOL_CLIENT_ID = process.env.USER_POOL_CLIENT_ID;
 export const HEADERS = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
