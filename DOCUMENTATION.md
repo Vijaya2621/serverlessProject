@@ -296,9 +296,25 @@ Our project implements JWT (JSON Web Token) based authentication:
 ### Security Considerations
 
 - JWT tokens are signed using a secret key stored in environment variables
-- Tokens have a configurable expiration time (default: 1 hour)
-- Passwords are hashed before storage using bcrypt
-- Authentication errors provide minimal information to prevent information leakage
+- Tokens have a configura# Authentication
+
+## Amazon Cognito Implementation
+
+Our project uses Amazon Cognito for secure user authentication and management:
+
+### Authentication Flow
+
+1. **User Registration**: Users are created in the Cognito User Pool with secure password policies
+2. **User Authentication**: Login requests are validated against Cognito using AdminInitiateAuth
+3. **Token-based Security**: Cognito issues JWT tokens (Access, ID, and Refresh tokens)
+4. **Token Verification**: Protected endpoints verify tokens using CognitoJwtVerifier
+
+### Security Features
+
+- **Secure Password Policies**: Enforced by Cognito (minimum length, complexity requirements)
+- **Token Expiration**: Configurable token expiration managed by Cognito
+- **Standardized JWT**: Industry-standard JWT tokens with built-in verification
+- **Authentication Errors**: Minimal information in error responses to prevent information leakage
 
 ## API Versioning
 
@@ -378,6 +394,59 @@ functions: {
 
 ## AWS Services Implementation
 
+### Amazon Cognito
+
+Amazon Cognito provides user authentication, authorization, and user management:
+
+1. **User Pool**: Centralized user directory with built-in sign-up and sign-in
+2. **Secure Authentication**: Industry-standard authentication flows and token handling
+3. **User Management**: APIs for creating users, changing passwords, and managing user attributes
+
+Configuration in `serverless.ts`:
+```typescript
+resources: {
+  Resources: {
+    UserPool: {
+      Type: 'AWS::Cognito::UserPool',
+      Properties: {
+        UserPoolName: '${self:service}-${sls:stage}-user-pool',
+        AutoVerifiedAttributes: ['email'],
+        UsernameAttributes: ['email'],
+        Schema: [
+          {
+            Name: 'email',
+            Required: true,
+            Mutable: true
+          }
+        ],
+        Policies: {
+          PasswordPolicy: {
+            MinimumLength: 8,
+            RequireLowercase: true,
+            RequireNumbers: true,
+            RequireSymbols: false,
+            RequireUppercase: true
+          }
+        }
+      }
+    },
+    UserPoolClient: {
+      Type: 'AWS::Cognito::UserPoolClient',
+      Properties: {
+        ClientName: '${self:service}-${sls:stage}-user-pool-client',
+        UserPoolId: { Ref: 'UserPool' },
+        ExplicitAuthFlows: [
+          'ALLOW_ADMIN_USER_PASSWORD_AUTH',
+          'ALLOW_USER_PASSWORD_AUTH',
+          'ALLOW_REFRESH_TOKEN_AUTH'
+        ],
+        GenerateSecret: false
+      }
+    }
+  }
+}
+```
+
 ### API Gateway
 
 API Gateway serves as the entry point for all HTTP requests and provides:
@@ -395,6 +464,23 @@ provider: {
   tracing: {
     apiGateway: true,
     lambda: true
+  },
+  iam: {
+    role: {
+      statements: [
+        {
+          Effect: 'Allow',
+          Action: [
+            'cognito-idp:AdminInitiateAuth',
+            'cognito-idp:AdminCreateUser',
+            'cognito-idp:AdminSetUserPassword',
+            'cognito-idp:ListUsers',
+            'cognito-idp:AdminGetUser'
+          ],
+          Resource: '*'
+        }
+      ]
+    }
   }
 }
 ```
@@ -426,7 +512,6 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: 'aws',
     runtime: 'nodejs20.x',
-    // Configuration with type checking
   }
 };
 ```
@@ -447,7 +532,9 @@ Lambda layers are used to share code and dependencies across functions:
 │                         DEPENDENCIES LAMBDA LAYER                         │
 ├───────────────────────┬───────────────────────┬───────────────────────────┤
 │                       │                       │                           │
-│     bcryptjs          │     jsonwebtoken      │      mongoose             │
+│ @aws-sdk/client-      │     aws-jwt-verify    │      mongoose             │
+│ cognito-identity-     │                       │                           │
+│ provider              │                       │                           │
 │                       │                       │                           │
 └───────────────────────┴───────────────────────┴───────────────────────────┘
                                      ▲
