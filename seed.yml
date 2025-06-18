@@ -1,14 +1,17 @@
 app: serverlessprojects
 
+# Define stages in your workflow
 stages:
-  dev:
-    autoDeploy: true
-  prod:
-    autoDeploy: false
+  - name: dev
+    autoDeploy: true  # Auto-deploy changes to dev
+  - name: prod
+    autoDeploy: false # Require manual approval for production
 
-before_build:
-  - npm install
-  - cd layer/nodejs && npm install && cd ../..
-
-before_deploy:
-  - echo "Deploying to $SEED_STAGE_NAME"
+# Define services (if you have a monorepo with multiple services)
+# In this case, we have a single service in the root directory
+services:
+  main:
+    path: ./
+    buildCommand: npm install
+    # Add any pre/post-deploy hooks if needed
+    # postDeploy: npm run post-deploy

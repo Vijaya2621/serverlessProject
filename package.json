@@ -19,6 +19,7 @@
     "@types/serverless": "^3.12.27",
     "esbuild": "^0.19.11",
     "serverless": "^4.0.0",
+    "serverless-esbuild": "^1.55.1",
     "serverless-offline": "^14.4.0",
     "serverless-plugin-scripts": "^1.0.2",
     "ts-node": "^10.9.2",

@@ -1,6 +1,0 @@
-.git
-node_modules
-.serverless
-.esbuild
-.DS_Store
-*.log
