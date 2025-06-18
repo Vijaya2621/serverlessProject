@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "npm run layer:install && NODE_PATH=./layer/nodejs/node_modules sls offline",
-    "deploy": "sls deploy",
-    "deploy:function": "node scripts/deploy-changed.js",
+    "dev": "npm run layer:install && NODE_PATH=./layer/nodejs/node_modules NODE_ENV=development sls offline",
+    "deploy": "npm run layer:install && sls deploy",
+    "deploy:function": "npm run layer:install && sls deploy function --function",
     "build": "tsc",
     "layer:install": "cd layer/nodejs && npm install",
     "predeploy": "npm run layer:install"
@@ -16,11 +17,14 @@
     "@serverless/typescript": "^4.15.1",
     "@types/node": "^24.0.1",
     "@types/serverless": "^3.12.27",
-    "ts-node": "^10.9.2",
+    "esbuild": "^0.19.11",
     "serverless": "^4.0.0",
     "serverless-offline": "^14.4.0",
     "serverless-plugin-scripts": "^1.0.2",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mongoose": "^8.16.0"
+  }
 }

@@ -1,0 +1,14 @@
+app: serverlessprojects
+
+stages:
+  dev:
+    autoDeploy: true
+  prod:
+    autoDeploy: false
+
+before_build:
+  - npm install
+  - cd layer/nodejs && npm install && cd ../..
+
+before_deploy:
+  - echo "Deploying to $SEED_STAGE_NAME"
