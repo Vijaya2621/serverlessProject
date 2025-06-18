@@ -1,0 +1,9 @@
+# This file is used by Seed.run to detect the project
+# It simply references the TypeScript configuration
+service: ${file(./serverless.ts):service}
+
+provider:
+  name: ${file(./serverless.ts):provider.name}
+  runtime: ${file(./serverless.ts):provider.runtime}
+
+functions: ${file(./serverless.ts):functions}

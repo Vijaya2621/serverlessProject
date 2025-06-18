@@ -12,6 +12,6 @@ stages:
 services:
   main:
     path: ./
-    buildCommand: npm install
+    buildCommand: npm install && npm run layer:install
     # Add any pre/post-deploy hooks if needed
     # postDeploy: npm run post-deploy
